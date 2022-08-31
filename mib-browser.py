@@ -7,10 +7,10 @@ while True:
     SwitchIP = input('Switch IP :')
     CommunityString = input('Community String :')
     SNMPVersion = input('SNMP Version ex 1 or 2 : ')
-    if not DefaultOID :
-        print('vaule is null')
-    else:
+    if DefaultOID and SwitchIP and CommunityString and SNMPVersion :
         break
+    else:
+        print('vaule is null')
 
 SnmpSimulatorData = ET.Element('SnmpSimulatorData')
 Instances = ET.SubElement(SnmpSimulatorData, 'Instances')
