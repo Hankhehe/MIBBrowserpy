@@ -23,13 +23,13 @@ elif SNMPVersion == '3':
     isauth = input('need auth y/n ?')
     if isauth == 'y' or isauth == 'Y' :
         SNMPv3Auth = input('Auth Key :')
-        Authoption = input('1= SHA\n None= MD5\n Auth protocol :')
+        Authoption = input('1 = SHA\nNone = MD5\nAuth protocol :')
         if Authoption == '1' : AuthProtocol = usmHMACSHAAuthProtocol
 
         isprivacy = input('need privacy y/n ?')
         if isprivacy == 'y' or isprivacy == 'Y':
             SNMPv3Privacy = input('Privacy Key :')
-            Privacyoption = input('1= AES128\n 2= AES192\n 3=AES256\n 4=3DES\n None=DES\n Privacy protocol ')
+            Privacyoption = input('1 = AES128\n2 = AES192\n3 = AES256\n4=3DES\nNone=DES\nPrivacy protocol : ')
             if Privacyoption == '1': PrivacyProtocol = usmAesCfb128Protocol
             elif Privacyoption == '2': PrivacyProtocol = usmAesCfb192Protocol
             elif Privacyoption == '3': PrivacyProtocol = usmAesCfb256Protocol
@@ -91,6 +91,7 @@ for errorIndication, errorStatus, errorIndex, varBinds in iterator:
             Instance = ET.SubElement(Instances, 'Instance', name=OidName,oid=OiD,valueType='OctetString')
             ET.SubElement(Instance,'Value').text = Value
             print(' = '.join([x.prettyPrint() for x in varBind]))
+            
 data= ET.tostring( SnmpSimulatorData)
 dom = minidom.parseString(data)
 with open(f'{SwitchIP}.xml','w') as f:
