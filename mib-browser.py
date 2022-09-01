@@ -2,25 +2,76 @@ from pysnmp.hlapi import *
 import xml.etree.cElementTree as ET
 from xml.dom import minidom
 
-while True:
-    DefaultOID = input('default OID ex .1.3 : ')
-    SwitchIP = input('Switch IP :')
+SwitchIP = input('Switch IP :')
+SNMPVersion = input('SNMP Version 1 or 2 or 3 : ')
+DefaultOID = input('default OID ex .1.3 : ')
+SNMPv3user,SNMPv3Auth,SNMPv3Privacy =None,None,None
+AuthProtocol = usmHMACMD5AuthProtocol
+PrivacyProtocol = usmDESPrivProtocol
+
+if SNMPVersion == '1':
     CommunityString = input('Community String :')
-    SNMPVersion = input('SNMP Version ex 1 or 2 : ')
-    if DefaultOID and SwitchIP and CommunityString and SNMPVersion :
-        break
+    iterator = nextCmd(
+    SnmpEngine(),
+    CommunityData(CommunityString, mpModel=0),
+    UdpTransportTarget((SwitchIP, 161)),
+    ContextData(),
+    ObjectType(ObjectIdentity(DefaultOID)))
+
+elif SNMPVersion == '3':
+    SNMPv3user = input('SNMPv3user :')
+    isauth = input('need auth y/n ?')
+    if isauth == 'y' or isauth == 'Y' :
+        SNMPv3Auth = input('Auth Key :')
+        Authoption = input('1= SHA\n None= MD5\n Auth protocol :')
+        if Authoption == '1' : AuthProtocol = usmHMACSHAAuthProtocol
+
+        isprivacy = input('need privacy y/n ?')
+        if isprivacy == 'y' or isprivacy == 'Y':
+            SNMPv3Privacy = input('Privacy Key :')
+            Privacyoption = input('1= AES128\n 2= AES192\n 3=AES256\n 4=3DES\n None=DES\n Privacy protocol ')
+            if Privacyoption == '1': PrivacyProtocol = usmAesCfb128Protocol
+            elif Privacyoption == '2': PrivacyProtocol = usmAesCfb192Protocol
+            elif Privacyoption == '3': PrivacyProtocol = usmAesCfb256Protocol
+            elif Privacyoption == '4': PrivacyProtocol = usm3DESEDEPrivProtocol
+
+    if SNMPv3Auth and SNMPv3Privacy:
+        iterator = nextCmd(
+        SnmpEngine(),
+        UsmUserData(SNMPv3user, SNMPv3Auth,SNMPv3Privacy,
+                authProtocol=AuthProtocol,
+                privProtocol=PrivacyProtocol),
+        UdpTransportTarget((SwitchIP, 161)),
+        ContextData(),
+        ObjectType(ObjectIdentity(DefaultOID)))
+
+    elif SNMPv3Auth :
+        iterator = nextCmd(
+        SnmpEngine(),
+        UsmUserData(SNMPv3user, SNMPv3Auth,authProtocol=AuthProtocol),
+        UdpTransportTarget((SwitchIP, 161)),
+        ContextData(),
+        ObjectType(ObjectIdentity(DefaultOID)))
+
     else:
-        print('vaule is null')
+        iterator = nextCmd(
+        SnmpEngine(),
+        UsmUserData(SNMPv3user),
+        UdpTransportTarget((SwitchIP, 161)),
+        ContextData(),
+        ObjectType(ObjectIdentity(DefaultOID)))
+else:
+    CommunityString = input('Community String :')
+    iterator = nextCmd(
+    SnmpEngine(),
+    CommunityData(CommunityString),
+    UdpTransportTarget((SwitchIP, 161)),
+    ContextData(),
+    ObjectType(ObjectIdentity(DefaultOID)))    
 
 SnmpSimulatorData = ET.Element('SnmpSimulatorData')
 Instances = ET.SubElement(SnmpSimulatorData, 'Instances')
-iterator = nextCmd(
-    SnmpEngine(),
-    CommunityData(CommunityString, mpModel=int(SNMPVersion) - 1),
-    UdpTransportTarget((SwitchIP, 161)),
-    ContextData(),
-    ObjectType(ObjectIdentity(DefaultOID))
-)
+
 for errorIndication, errorStatus, errorIndex, varBinds in iterator:
 
     if errorIndication:
