@@ -12,7 +12,7 @@ AuthProtocol = usmHMACMD5AuthProtocol #it's Default is MD5
 PrivacyProtocol = usmDESPrivProtocol #it's Default is DES
 
 if SNMPVersion == '1':
-    CommunityString = input('Community String :')
+    CommunityString = input('Community String ex public :')
     if not CommunityString : CommunityString = 'public' #Default community Str is public
     iterator = nextCmd(
     SnmpEngine(),
@@ -73,6 +73,8 @@ else:
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))    
 
+Exportileformat = input('Export File format: 1=xml 2=snmprec :')
+if not Exportileformat : Exportileformat = '2'
 SnmpSimulatorData = ET.Element('SnmpSimulatorData')
 Instances = ET.SubElement(SnmpSimulatorData, 'Instances')
 
@@ -88,15 +90,30 @@ for errorIndication, errorStatus, errorIndex, varBinds in iterator:
         break
 
     else:
-        for varBind in varBinds:
-            OidName = varBind[0]._ObjectIdentity__symName
-            OiD = '.'+'.'.join([ str(x) for x in varBind[0]._ObjectIdentity__oid._value]) 
-            Value = varBind[1].prettyPrint()
-            Instance = ET.SubElement(Instances, 'Instance', name=OidName,oid=OiD,valueType='OctetString')
-            ET.SubElement(Instance,'Value').text = Value
-            print(' = '.join([x.prettyPrint() for x in varBind]))
-            
-data= ET.tostring( SnmpSimulatorData)
-dom = minidom.parseString(data)
-with open(f'{SwitchIP}.xml','w') as f:
-    dom.writexml(f,'','\t','\n')
+        if Exportileformat == '1' :
+            for varBind in varBinds:
+                OidName = varBind[0]._ObjectIdentity__symName
+                OiD = '.'+'.'.join([ str(x) for x in varBind[0]._ObjectIdentity__oid._value]) 
+                Value = varBind[1].subtype().prettyPrint()
+                ValueType = varBind[1].subtype().prettyPrintType()
+                ValueType = str(ValueType[str(ValueType).index('->')+3::])
+                Instance = ET.SubElement(Instances, 'Instance', name=OidName,oid=OiD,valueType=ValueType)
+                ET.SubElement(Instance,'Value').text = Value
+                print(' = '.join([x.prettyPrint() for x in varBind]))
+
+        elif Exportileformat == '2':
+            for varBind in varBinds:
+                OiD = '.'.join([ str(x) for x in varBind[0]._ObjectIdentity__oid._value]) 
+                Value = str(varBind[1].subtype().prettyPrint()).replace('\n',' ').replace('\r',' ').replace('\t',' ')
+                ValueTypeID = varBind[1].subtype().prettyPrintType()
+                ValueTypeID = str(ValueTypeID[str(ValueTypeID).index('tags ')+5:str(ValueTypeID).index('>')]).split(':')
+                ValueTypeID = sum([int(x) for x in ValueTypeID])
+                with open(f'{SwitchIP}.snmprec',mode='a') as f:
+                    f.write(f'{OiD}|{ValueTypeID}|{Value}\n')
+                print(' = '.join([x.prettyPrint() for x in varBind]))
+
+if Exportileformat == '1':     
+    data= ET.tostring( SnmpSimulatorData)
+    dom = minidom.parseString(data)
+    with open(f'{SwitchIP}.xml','w') as f:
+        dom.writexml(f,'','\t','\n')
