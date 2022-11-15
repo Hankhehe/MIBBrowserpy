@@ -2,6 +2,7 @@ from pysnmp.hlapi import *
 import xml.etree.cElementTree as ET
 from xml.dom import minidom
 
+SoreceIP = input('Source IP :')
 SwitchIP = input('Switch IP :')
 SNMPVersion = input('SNMP Version 1 or 2 or 3 : ')
 if not SNMPVersion : SNMPVersion = '2' #Default SNMPv2
@@ -17,7 +18,8 @@ if SNMPVersion == '1':
     iterator = nextCmd(
     SnmpEngine(),
     CommunityData(CommunityString, mpModel=0),
-    UdpTransportTarget((SwitchIP, 161)),
+    UdpTransportTarget((SwitchIP, 161)).setLocalAddress(SoreceIP),
+    
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))
 
@@ -44,7 +46,7 @@ elif SNMPVersion == '3':
         UsmUserData(SNMPv3user, SNMPv3Auth,SNMPv3Privacy,
                 authProtocol=AuthProtocol,
                 privProtocol=PrivacyProtocol),
-        UdpTransportTarget((SwitchIP, 161)),
+        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 
@@ -52,7 +54,7 @@ elif SNMPVersion == '3':
         iterator = nextCmd(
         SnmpEngine(),
         UsmUserData(SNMPv3user, SNMPv3Auth,authProtocol=AuthProtocol),
-        UdpTransportTarget((SwitchIP, 161)),
+        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 
@@ -60,7 +62,7 @@ elif SNMPVersion == '3':
         iterator = nextCmd(
         SnmpEngine(),
         UsmUserData(SNMPv3user),
-        UdpTransportTarget((SwitchIP, 161)),
+        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 else:
@@ -69,7 +71,7 @@ else:
     iterator = nextCmd(
     SnmpEngine(),
     CommunityData(CommunityString),
-    UdpTransportTarget((SwitchIP, 161)),
+    UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))    
 
