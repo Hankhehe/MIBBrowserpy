@@ -18,7 +18,7 @@ if SNMPVersion == '1':
     iterator = nextCmd(
     SnmpEngine(),
     CommunityData(CommunityString, mpModel=0),
-    UdpTransportTarget((SwitchIP, 161)).setLocalAddress(SoreceIP),
+    UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
     
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))
