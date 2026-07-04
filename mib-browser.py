@@ -8,6 +8,21 @@ SNMPVersion = input('SNMP Version 1 or 2 or 3 : ')
 if not SNMPVersion : SNMPVersion = '2' #Default SNMPv2
 DefaultOID = input('default OID ex .1.3 : ')
 if not DefaultOID : DefaultOID = '.1.3' #Default .1.3
+
+Timeout_input = input('Timeout (seconds) ex 1 : ')
+try:
+    Timeout = float(Timeout_input) if Timeout_input else 1.0
+except ValueError:
+    print('Invalid timeout. Using default 1.0 second.')
+    Timeout = 1.0
+
+Retries_input = input('Retries ex 5 : ')
+try:
+    Retries = int(Retries_input) if Retries_input else 5
+except ValueError:
+    print('Invalid retries. Using default 5.')
+    Retries = 5
+
 SNMPv3user,SNMPv3Auth,SNMPv3Privacy =None,None,None
 AuthProtocol = usmHMACMD5AuthProtocol #it's Default is MD5
 PrivacyProtocol = usmDESPrivProtocol #it's Default is DES
@@ -18,7 +33,7 @@ if SNMPVersion == '1':
     iterator = nextCmd(
     SnmpEngine(),
     CommunityData(CommunityString, mpModel=0),
-    UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
+    UdpTransportTarget((SwitchIP, 161), timeout=Timeout, retries=Retries).setLocalAddress((SoreceIP,0)),
     
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))
@@ -46,7 +61,7 @@ elif SNMPVersion == '3':
         UsmUserData(SNMPv3user, SNMPv3Auth,SNMPv3Privacy,
                 authProtocol=AuthProtocol,
                 privProtocol=PrivacyProtocol),
-        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
+        UdpTransportTarget((SwitchIP, 161), timeout=Timeout, retries=Retries).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 
@@ -54,7 +69,7 @@ elif SNMPVersion == '3':
         iterator = nextCmd(
         SnmpEngine(),
         UsmUserData(SNMPv3user, SNMPv3Auth,authProtocol=AuthProtocol),
-        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
+        UdpTransportTarget((SwitchIP, 161), timeout=Timeout, retries=Retries).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 
@@ -62,7 +77,7 @@ elif SNMPVersion == '3':
         iterator = nextCmd(
         SnmpEngine(),
         UsmUserData(SNMPv3user),
-        UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
+        UdpTransportTarget((SwitchIP, 161), timeout=Timeout, retries=Retries).setLocalAddress((SoreceIP,0)),
         ContextData(),
         ObjectType(ObjectIdentity(DefaultOID)))
 else:
@@ -71,7 +86,7 @@ else:
     iterator = nextCmd(
     SnmpEngine(),
     CommunityData(CommunityString),
-    UdpTransportTarget((SwitchIP, 161)).setLocalAddress((SoreceIP,0)),
+    UdpTransportTarget((SwitchIP, 161), timeout=Timeout, retries=Retries).setLocalAddress((SoreceIP,0)),
     ContextData(),
     ObjectType(ObjectIdentity(DefaultOID)))    
 
